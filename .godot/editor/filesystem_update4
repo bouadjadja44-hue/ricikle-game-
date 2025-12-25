@@ -1,0 +1,4 @@
+res://scenc/player.tscn
+res://scenc/core/main.tscn
+res://addons/srcoder_fps_controller/assets/scripts/player.gd
+res://scripts/player_controller.gd
