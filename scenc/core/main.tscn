@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://dyqr505lpl7vg"]
+[gd_scene load_steps=20 format=3 uid="uid://dyqr505lpl7vg"]
 
 [ext_resource type="PackedScene" uid="uid://dicb748u826k6" path="res://scenc/player.tscn" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://b7tn7sa8y8bis" path="res://assets/materials/Grid_albedo.png" id="1_u83gr"]
@@ -6,7 +6,13 @@
 [ext_resource type="PackedScene" path="res://scenc/grabbable_sphere.tscn" id="3_sphere"]
 [ext_resource type="PackedScene" path="res://scenc/Bottle.tscn" id="5_jq6ku"]
 [ext_resource type="PackedScene" path="res://scenc/SellZone.tscn" id="7_wm3db"]
+[ext_resource type="PackedScene" path="res://scenc/machine_crusher.tscn" id="8_k511e"]
 [ext_resource type="PackedScene" path="res://scenc/computer.tscn" id="8_lr7h2"]
+[ext_resource type="PackedScene" path="res://scenc/machine_recycler.tscn" id="9_lk0y4"]
+[ext_resource type="PackedScene" path="res://scenc/machine_washer.tscn" id="10_0romq"]
+[ext_resource type="PackedScene" path="res://scenc/Paper.tscn" id="11_1q1fa"]
+[ext_resource type="PackedScene" path="res://scenc/PaperBaler.tscn" id="12_51ghd"]
+[ext_resource type="PackedScene" path="res://scenc/PlasticShredder.tscn" id="13_mg0sh"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_s86m7"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -66,3 +72,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.07156, 0.3, -5.40654)
 
 [node name="Computer" parent="." instance=ExtResource("8_lr7h2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.06653, 0.7, 3.18847)
+
+[node name="Machine_Crusher" parent="." instance=ExtResource("8_k511e")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5769, 1.15, -0.81719)
+
+[node name="Machine_Recycler" parent="." instance=ExtResource("9_lk0y4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.55324, 1.25, -2.37433)
+
+[node name="Machine_Washer" parent="." instance=ExtResource("10_0romq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.27777, 1.05, -2.61943)
+
+[node name="Paper" parent="." instance=ExtResource("11_1q1fa")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.52063, 0.275, -1.17193)
+
+[node name="PaperBaler" parent="." instance=ExtResource("12_51ghd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000258565, 1.25, -2.62159)
+
+[node name="PlasticShredder" parent="." instance=ExtResource("13_mg0sh")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.67473, 1.25, -2.64321)

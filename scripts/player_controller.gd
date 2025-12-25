@@ -18,8 +18,16 @@ class_name PlayerController
 @export var controller_sensitivity: float = 1.5
 @export var look_up_limit: float = 85.0
 @export var look_down_limit: float = -85.0
-@export var head_bob_amount: float = 0.03
-@export var head_bob_frequency: float = 1.5
+
+@export_group("Input Actions")
+@export var input_forward: String = "forward"
+@export var input_back: String = "back"
+@export var input_left: String = "left"
+@export var input_right: String = "right"
+@export var input_jump: String = "jump"
+@export var input_run: String = "run"
+@export var input_interact: String = "grab"
+@export var input_throw: String = "throw"
 
 @export_group("Grab System")
 @export var grab_distance: float = 2.5
@@ -37,8 +45,6 @@ var is_running: bool = false
 # متغيرات الحركة المتقدمة
 var time_since_ground: float = 0.0
 var time_since_jump_request: float = 0.0
-var head_bob_time: float = 0.0
-var original_head_position: Vector3
 
 # متغيرات الكاميرا
 var camera_pitch: float = 0.0
@@ -57,7 +63,6 @@ var money: int = 0
 func _ready():
 	add_to_group("player")
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	original_head_position = head.position
 	setup_ui()
 	
 	# نقطة الإمساك
@@ -83,7 +88,6 @@ func _physics_process(delta):
 	update_timers(delta)
 	handle_movement(delta)
 	handle_grabbing(delta)
-	handle_head_bob(delta)
 	move_and_slide()
 
 func update_timers(delta):
@@ -92,7 +96,7 @@ func update_timers(delta):
 	else:
 		time_since_ground = 0.0
 	
-	if Input.is_action_pressed("jump"):
+	if Input.is_action_pressed(input_jump):
 		time_since_jump_request = 0.0
 	else:
 		time_since_jump_request += delta
@@ -116,10 +120,10 @@ func handle_movement(delta):
 		time_since_jump_request = jump_buffer_time
 		time_since_ground = coyote_time
 	
-	is_running = Input.is_action_pressed("run")
+	is_running = Input.is_action_pressed(input_run)
 	var current_speed = run_speed if is_running else walk_speed
 	
-	var input_dir = Input.get_vector("left", "right", "forward", "back")
+	var input_dir = Input.get_vector(input_left, input_right, input_forward, input_back)
 	var direction = (head.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
 	if is_on_floor():
@@ -134,14 +138,6 @@ func handle_movement(delta):
 			velocity.x = move_toward(velocity.x, direction.x * current_speed * air_control, acceleration * delta * 0.5)
 			velocity.z = move_toward(velocity.z, direction.z * current_speed * air_control, acceleration * delta * 0.5)
 
-func handle_head_bob(delta):
-	if is_on_floor() and velocity.length() > 0.1:
-		head_bob_time += delta * head_bob_frequency * (run_speed if is_running else walk_speed)
-		var bob_offset = Vector3(0, sin(head_bob_time * 2.0) * head_bob_amount, sin(head_bob_time) * head_bob_amount * 0.3)
-		head.position = original_head_position + bob_offset
-	else:
-		head_bob_time = 0.0
-		head.position = head.position.lerp(original_head_position, delta * 5.0)
 
 func handle_mouse_look(event: InputEventMouseMotion):
 	rotate_y(-event.relative.x * mouse_sensitivity)
@@ -149,13 +145,13 @@ func handle_mouse_look(event: InputEventMouseMotion):
 	head.rotation.x = clamp(head.rotation.x, deg_to_rad(look_down_limit), deg_to_rad(look_up_limit))
 
 func handle_grabbing(delta):
-	if Input.is_action_just_pressed("grab"):
+	if Input.is_action_just_pressed(input_interact):
 		if grabbed_object:
 			release_object()
 		else:
 			process_interaction()
 	
-	if Input.is_action_just_pressed("throw") and grabbed_object:
+	if Input.is_action_just_pressed(input_throw) and grabbed_object:
 		throw_object()
 	
 	if grabbed_object and is_instance_valid(grabbed_object):
