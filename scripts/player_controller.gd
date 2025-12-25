@@ -30,12 +30,10 @@ class_name PlayerController
 # Nodes
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
-@onready var foot_area: Area3D = $FootArea
 
 # المتغيرات الأساسية
 var gravity: float = 9.8
 var is_running: bool = false
-var is_on_ground: bool = false
 
 # متغيرات الحركة المتقدمة
 var time_since_ground: float = 0.0
@@ -52,16 +50,36 @@ var grabbed_object: RigidBody3D = null
 var grab_joint: PinJoint3D = null
 var original_grabbed_properties: Dictionary = {}
 
+# Inventory System
+var inventory: Dictionary = {} # { "Plastic": 0, "Paper": 0, ... }
+
+@onready var interaction_label: Label = null # Will be initialized in _ready
+
 func _ready():
 	# إعداد وضع الماوس
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
-	# ربط أحداث القدم
-	foot_area.body_entered.connect(_on_foot_entered)
-	foot_area.body_exited.connect(_on_foot_exited)
-	
 	# حفظ الموضع الأصلي للرأس
 	original_head_position = head.position
+	
+	# Create a simple UI for notifications if it doesn't exist
+	setup_ui()
+
+func setup_ui():
+	var canvas = CanvasLayer.new()
+	add_child(canvas)
+	interaction_label = Label.new()
+	interaction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	interaction_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	interaction_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_KEEP_WIDTH, 100)
+	canvas.add_child(interaction_label)
+	
+	# Add a crosshair
+	var crosshair = ColorRect.new()
+	crosshair.custom_minimum_size = Vector2(4, 4)
+	crosshair.color = Color.WHITE
+	crosshair.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	canvas.add_child(crosshair)
 
 func _physics_process(delta):
 	# تحديث المؤقتات
@@ -77,7 +95,7 @@ func _physics_process(delta):
 
 func update_timers(delta):
 	# تحديث مؤقت Coyote Time
-	if not is_on_ground:
+	if not is_on_floor():
 		time_since_ground += delta
 	else:
 		time_since_ground = 0.0
@@ -105,12 +123,13 @@ func handle_movement(delta):
 		velocity.y -= gravity * delta
 	
 	# القفز مع Coyote Time و Jump Buffer
-	var can_jump = is_on_ground or time_since_ground < coyote_time
+	var can_jump = is_on_floor() or time_since_ground < coyote_time
 	var jump_requested = time_since_jump_request < jump_buffer_time
 	
 	if can_jump and jump_requested:
 		velocity.y = jump_velocity
-		time_since_jump_request = jump_buffer_time  # منع القفز المزدوج
+		time_since_jump_request = jump_buffer_time
+		time_since_ground = coyote_time # Prevent multiple jumps
 	
 	# الجري
 	is_running = Input.is_action_pressed("run")
@@ -171,12 +190,12 @@ func handle_controller_look(event: InputEventJoypadMotion):
 		head.rotation.x = camera_pitch
 
 func handle_grabbing(_delta):
-	# الإمساك بالكائن
+	# التفاعل (جمع النفايات أو الإمساك)
 	if Input.is_action_just_pressed("grab"):
 		if grabbed_object:
 			release_object()
 		else:
-			try_grab_object()
+			process_interaction()
 	
 	# رمي الكائن
 	if Input.is_action_just_pressed("throw") and grabbed_object:
@@ -187,52 +206,80 @@ func handle_grabbing(_delta):
 		var target_pos = camera.global_position + camera.global_transform.basis * Vector3.FORWARD * grab_distance
 		grab_joint.global_position = target_pos
 
-func try_grab_object():
+func process_interaction():
 	var space_state = get_world_3d().direct_space_state
 	var query = PhysicsRayQueryParameters3D.create(
 		camera.global_position,
 		camera.global_position + camera.global_transform.basis * Vector3.FORWARD * grab_distance
 	)
-	query.collision_mask = 1  # Layer 1 for grabbable objects
+	query.collision_mask = 1
 	
 	var result = space_state.intersect_ray(query)
 	
-	if result and result.collider is RigidBody3D:
-		grabbed_object = result.collider
+	if result:
+		var collider = result.collider
 		
-		# حفظ الخصائص الأصلية
-		original_grabbed_properties = {
-			"gravity_scale": grabbed_object.gravity_scale,
-			"linear_damp": grabbed_object.linear_damp,
-			"angular_damp": grabbed_object.angular_damp,
-			"mass": grabbed_object.mass
-		}
+		# إذا كانت نفاية، اجمعها
+		if collider is TrashItem:
+			collect_trash(collider)
+			return
 		
-		# إنشاء وصلة تثبيت مع تحقق أفضل
-		grab_joint = PinJoint3D.new()
-		grab_joint.node_a = self.get_path()
-		grab_joint.node_b = grabbed_object.get_path()
-		grab_joint.global_position = result.position
-		
-		# إعدادات الوصلة الأكثر استقراراً
-		grab_joint.params.spring_length = 0.0
-		grab_joint.params.spring_stiffness = grab_force
-		grab_joint.params.damping = 15.0
-		grab_joint.params.max_force = 500.0
-		
-		# إضافة الوصلة بشكل آمن
-		call_deferred("add_child_deferred", grab_joint)
-		
-		# تعديل خصائص الكائن الممسوك
-		grabbed_object.gravity_scale = 0.05
-		grabbed_object.linear_damp = 10.0
-		grabbed_object.angular_damp = 10.0
-		grabbed_object.mass = min(grabbed_object.mass, 3.0)  # تحديد أقصى كتلة
-		
-		print("✅ تم الإمساك بالكائن: ", grabbed_object.name)
+		# إذا كان كائناً قابلاً للإمساك، أمسك به
+		if collider is RigidBody3D:
+			try_grab_object(collider, result.position)
 
-func add_child_deferred(joint: PinJoint3D):
-	add_child(joint)
+func collect_trash(trash: TrashItem):
+	var data = trash.collect()
+	var type = data["type"]
+	var value = data["value"]
+	
+	if not inventory.has(type):
+		inventory[type] = 0
+	inventory[type] += value
+	
+	show_message("%s collected +%d" % [type, value])
+	print("Inventory: ", inventory)
+
+func show_message(text: String):
+	if interaction_label:
+		interaction_label.text = text
+		# Fade out after 2 seconds
+		var tween = get_tree().create_tween()
+		interaction_label.modulate.a = 1.0
+		tween.tween_property(interaction_label, "modulate:a", 0.0, 2.0).set_delay(1.0)
+
+func try_grab_object(obj: RigidBody3D, hit_pos: Vector3):
+	grabbed_object = obj
+	
+	# حفظ الخصائص الأصلية
+	original_grabbed_properties = {
+		"gravity_scale": grabbed_object.gravity_scale,
+		"linear_damp": grabbed_object.linear_damp,
+		"angular_damp": grabbed_object.angular_damp,
+		"mass": grabbed_object.mass
+	}
+	
+	# إنشاء وصلة تثبيت
+	grab_joint = PinJoint3D.new()
+	add_child(grab_joint)
+	grab_joint.node_a = self.get_path()
+	grab_joint.node_b = grabbed_object.get_path()
+	grab_joint.global_position = hit_pos
+	
+	# إعدادات الوصلة
+	grab_joint.params.spring_length = 0.0
+	grab_joint.params.spring_stiffness = grab_force
+	grab_joint.params.damping = 15.0
+	grab_joint.params.max_force = 500.0
+	
+	# تعديل خصائص الكائن
+	grabbed_object.gravity_scale = 0.05
+	grabbed_object.linear_damp = 10.0
+	grabbed_object.angular_damp = 10.0
+	grabbed_object.mass = min(grabbed_object.mass, 3.0)
+	
+	print("✅ تم الإمساك بالكائن: ", grabbed_object.name)
+
 
 func release_object():
 	if not grabbed_object:
@@ -274,13 +321,6 @@ func toggle_mouse_mode():
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
-# أحداث القدم للكشف عن الأرض
-func _on_foot_entered(body):
-	is_on_ground = true
-
-func _on_foot_exited(body):
-	is_on_ground = false
 
 # دالة للحصول على سرعة اللاعب الحالية
 func get_current_speed() -> float:
