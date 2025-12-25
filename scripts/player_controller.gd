@@ -262,21 +262,21 @@ func try_grab_object(obj: RigidBody3D, hit_pos: Vector3):
 	# إنشاء وصلة تثبيت
 	grab_joint = PinJoint3D.new()
 	add_child(grab_joint)
+	
+	# إعدادات الوصلة الصحيحة في Godot 4
+	grab_joint.global_position = hit_pos
 	grab_joint.node_a = self.get_path()
 	grab_joint.node_b = grabbed_object.get_path()
-	grab_joint.global_position = hit_pos
 	
-	# إعدادات الوصلة
-	grab_joint.params.spring_length = 0.0
-	grab_joint.params.spring_stiffness = grab_force
-	grab_joint.params.damping = 15.0
-	grab_joint.params.max_force = 500.0
+	# ضبط المعاملات المدعومة (النعومة والارتباط)
+	grab_joint.set_param(PinJoint3D.PARAM_BIAS, 0.9)
+	grab_joint.set_param(PinJoint3D.PARAM_DAMPING, 7.0)
+	grab_joint.set_param(PinJoint3D.PARAM_IMPULSE_CLAMP, 0.0)
 	
-	# تعديل خصائص الكائن
-	grabbed_object.gravity_scale = 0.05
+	# تعديل خصائص الكائن لجعله يبدو خفيفاً وسلس الحركة أثناء الإمساك
+	grabbed_object.gravity_scale = 0.0
 	grabbed_object.linear_damp = 10.0
 	grabbed_object.angular_damp = 10.0
-	grabbed_object.mass = min(grabbed_object.mass, 3.0)
 	
 	print("✅ تم الإمساك بالكائن: ", grabbed_object.name)
 
