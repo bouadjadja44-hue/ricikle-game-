@@ -1,0 +1,45 @@
+[gd_scene load_steps=7 format=3 uid="uid://machine_crusher"]
+
+[ext_resource type="Script" uid="uid://machine_script" path="res://scripts/base_machine.gd" id="1_script"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_body"]
+size = Vector3(1.2, 1.8, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crusher"]
+albedo_color = Color(0.8, 0.2, 0.2, 1)
+metallic = 0.7
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_mouth"]
+size = Vector3(0.8, 0.4, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dark"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_machine"]
+size = Vector3(1.2, 1.8, 1.2)
+
+[node name="Machine_Crusher" type="StaticBody3D"]
+script = ExtResource("1_script")
+type = 0
+
+[node name="Body" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_body")
+surface_override_material/0 = SubResource("StandardMaterial3D_crusher")
+
+[node name="Mouth" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0.3)
+mesh = SubResource("BoxMesh_mouth")
+surface_override_material/0 = SubResource("StandardMaterial3D_dark")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_machine")
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+pixel_size = 0.005
+billboard = 1
+text = "CRUSHER"
+font_size = 32
+outline_size = 12
+modulate = Color(1, 0.4, 0.4, 1)

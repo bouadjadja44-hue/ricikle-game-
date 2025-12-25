@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3 uid="uid://d8m3v2k1m4j"]
+
+[ext_resource type="Script" path="res://scripts/trash_item.gd" id="1_script"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1"]
+size = Vector3(0.3, 0.05, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.9, 0.9, 0.8, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+material = SubResource("StandardMaterial3D_1")
+size = Vector3(0.3, 0.05, 0.4)
+
+[node name="Paper" type="RigidBody3D"]
+collision_layer = 1
+script = ExtResource("1_script")
+type = 1
+value = 5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_1")

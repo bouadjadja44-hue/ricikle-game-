@@ -1,9 +1,12 @@
-[gd_scene load_steps=11 format=3 uid="uid://dyqr505lpl7vg"]
+[gd_scene load_steps=14 format=3 uid="uid://dyqr505lpl7vg"]
 
 [ext_resource type="PackedScene" uid="uid://dicb748u826k6" path="res://scenc/player.tscn" id="1_player"]
 [ext_resource type="Texture2D" uid="uid://b7tn7sa8y8bis" path="res://assets/materials/Grid_albedo.png" id="1_u83gr"]
 [ext_resource type="PackedScene" path="res://scenc/grabbable_cube.tscn" id="2_cube"]
 [ext_resource type="PackedScene" path="res://scenc/grabbable_sphere.tscn" id="3_sphere"]
+[ext_resource type="PackedScene" path="res://scenc/Bottle.tscn" id="5_jq6ku"]
+[ext_resource type="PackedScene" path="res://scenc/SellZone.tscn" id="7_wm3db"]
+[ext_resource type="PackedScene" path="res://scenc/computer.tscn" id="8_lr7h2"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_s86m7"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -54,3 +57,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, 0)
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 5)
+
+[node name="Bottle" parent="." instance=ExtResource("5_jq6ku")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6285, -1.55826)
+
+[node name="SellZone" parent="." instance=ExtResource("7_wm3db")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.07156, 0.3, -5.40654)
+
+[node name="Computer" parent="." instance=ExtResource("8_lr7h2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.06653, 0.7, 3.18847)
