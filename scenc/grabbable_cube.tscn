@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://bv8ywqjfjda"]
+
+[ext_resource type="Script" path="res://scripts/grabbable_object.gd" id="GrabbableScript"]
+
+[sub_resource type="StandardMaterial3D" id="CubeMaterial"]
+albedo_color = Color(0.2, 0.6, 1.0, 1.0)
+
+[sub_resource type="BoxMesh" id="CubeMesh"]
+material = SubResource("CubeMaterial")
+size = Vector3(0.5, 0.5, 0.5)
+
+[sub_resource type="BoxShape3D" id="CubeShape"]
+size = Vector3(0.5, 0.5, 0.5)
+
+[node name="GrabbableCube" type="RigidBody3D"]
+script = ExtResource("GrabbableScript")
+mass = 1.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CubeMesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CubeShape")

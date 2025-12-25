@@ -1,0 +1,56 @@
+[gd_scene load_steps=11 format=3 uid="uid://dyqr505lpl7vg"]
+
+[ext_resource type="PackedScene" uid="uid://dicb748u826k6" path="res://scenc/player.tscn" id="1_player"]
+[ext_resource type="Texture2D" uid="uid://b7tn7sa8y8bis" path="res://assets/materials/Grid_albedo.png" id="1_u83gr"]
+[ext_resource type="PackedScene" path="res://scenc/grabbable_cube.tscn" id="2_cube"]
+[ext_resource type="PackedScene" path="res://scenc/grabbable_sphere.tscn" id="3_sphere"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_s86m7"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_j0btn"]
+sky_material = SubResource("ProceduralSkyMaterial_s86m7")
+
+[sub_resource type="Environment" id="Environment_u83gr"]
+background_mode = 2
+sky = SubResource("Sky_j0btn")
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b7ot8"]
+albedo_texture = ExtResource("1_u83gr")
+uv1_scale = Vector3(-5.7, -5.7, -5.7)
+
+[sub_resource type="BoxMesh" id="BoxMesh_u83gr"]
+size = Vector3(50, 0.5, 50)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_b7ot8"]
+points = PackedVector3Array(-25, -0.25, -25, -25, 0.25, -25, 25, -0.25, -25, -25, -0.25, 25, -25, 0.25, 25, 25, 0.25, -25, 25, -0.25, 25, 25, 0.25, 25)
+
+[node name="main" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
+light_energy = 0.0
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_u83gr")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+material_override = SubResource("StandardMaterial3D_b7ot8")
+mesh = SubResource("BoxMesh_u83gr")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D"]
+shape = SubResource("ConvexPolygonShape3D_b7ot8")
+
+[node name="GrabbableCube" parent="." instance=ExtResource("2_cube")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, 0)
+
+[node name="GrabbableSphere" parent="." instance=ExtResource("3_sphere")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1, 0)
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 5)
